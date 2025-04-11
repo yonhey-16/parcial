@@ -1,26 +1,53 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Snake Game Bonito</title>
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego de la Culebrita</title>
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 </head>
 <body>
-  <h1>🐍 Snake</h1>
-  <canvas id="game" width="300" height="300"></canvas>
-
-  <div class="controls">
-    <button onclick="setDirection('up')">⬆️</button>
-    <div>
-      <button onclick="setDirection('left')">⬅️</button>
-      <button onclick="setDirection('down')">⬇️</button>
-      <button onclick="setDirection('right')">➡️</button>
+    <!-- Menú Principal -->
+    <div id="mainMenu">
+        <h1>Snake</h1>
+        <button id="playButton">Jugar</button>
+        <button id="customizeButton">Personalizar</button>
     </div>
-  </div>
 
-  <p id="score">Puntaje: 0</p>
+    <!-- Menú de Personalización -->
+    <div id="menu" style="display: none;">
+        <h2>Personalización</h2>
+        <label for="snakeColor">Color de la serpiente:</label>
+        <input type="color" id="snakeColor" value="#00ff00"><br>
 
-  <script src="script.js"></script>
+        <label for="bgColor">Color de fondo:</label>
+        <input type="color" id="bgColor" value="#000000"><br>
+
+        <button id="startGameButton">Jugar</button>
+    </div>
+
+    <!-- Lienzo del Juego -->
+    <canvas id="gameCanvas" style="display: none;"></canvas>
+
+    <!-- Controles para móvil (Estilo Arcade) -->
+    <div class="controls" style="display: none;">
+        <div class="control-row">
+            <button id="up" class="control-btn">▲</button>
+        </div>
+        <div class="control-row">
+            <button id="left" class="control-btn">◀</button>
+            <button id="right" class="control-btn">▶</button>
+        </div>
+        <div class="control-row">
+            <button id="down" class="control-btn">▼</button>
+        </div>
+    </div>
+
+    <!-- Script del juego -->
+    <script src="script.js"></script>
 </body>
 </html>
