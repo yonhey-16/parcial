@@ -1,295 +1,92 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const tileSize = 20;
+const rows = canvas.height / tileSize;
+const cols = canvas.width / tileSize;
 
-// Configuración de Firebase
-const firebaseConfig = {
-  apiKey: "AIzaSyBN07ubU0AijfsVG2aJP38rzlRnSMJQNjU",
-  authDomain: "parcial-e02ad.firebaseapp.com",
-  projectId: "parcial-e02ad",
-  storageBucket: "parcial-e02ad.firebasestorage.app",
-  messagingSenderId: "612576348278",
-  appId: "1:612576348278:web:3b620d1800de1ad2fef757"
-};
+let pacman = { x: 5, y: 5 };
+let direction = "right";
+let dots = [];
 
-// Inicializar Firebase
-const app = initializeApp(firebaseConfig);
-const database = getDatabase(app);
+function initDots() {
+  dots = [];
+  for (let i = 0; i < cols; i++) {
+    for (let j = 0; j < rows; j++) {
+      if (!(i === pacman.x && j === pacman.y)) {
+        dots.push({ x: i, y: j });
+      }
+    }
+  }
+}
 
-// Variables del juego
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-const scoreElement = document.getElementById('score');
-const highScoreElement = document.getElementById('highScore');
-const restartBtn = document.getElementById('restartBtn');
+function drawPacman() {
+  ctx.beginPath();
+  ctx.fillStyle = "yellow";
+  ctx.arc(
+    pacman.x * tileSize + tileSize / 2,
+    pacman.y * tileSize + tileSize / 2,
+    tileSize / 2,
+    0.2 * Math.PI,
+    1.8 * Math.PI
+  );
+  ctx.lineTo(pacman.x * tileSize + tileSize / 2, pacman.y * tileSize + tileSize / 2);
+  ctx.fill();
+}
 
-const gridSize = 20;
-let snake = [{ x: 2, y: 2 }];
-let direction = { x: 1, y: 0 };
-let food = { x: 5, y: 5 };
-let score = 0;
-let highScore = 0;
-let gameInterval;
-
-canvas.width = 400;
-canvas.height = 400;
-
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // Dibujar serpiente
-  ctx.fillStyle = 'lime';
-  snake.forEach(segment => {
-    ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
+function drawDots() {
+  ctx.fillStyle = "white";
+  dots.forEach(dot => {
+    ctx.beginPath();
+    ctx.arc(
+      dot.x * tileSize + tileSize / 2,
+      dot.y * tileSize + tileSize / 2,
+      3,
+      0,
+      2 * Math.PI
+    );
+    ctx.fill();
   });
-
-  // Dibujar comida
-  ctx.fillStyle = 'red';
-  ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize, gridSize);
-
-  scoreElement.textContent = score;
-  highScoreElement.textContent = highScore;
 }
 
 function update() {
-  const head = { ...snake[0] };
-  head.x += direction.x;
-  head.y += direction.y;
+  if (direction === "up") pacman.y--;
+  if (direction === "down") pacman.y++;
+  if (direction === "left") pacman.x--;
+  if (direction === "right") pacman.x++;
 
-  // Colisión con bordes
-  if (head.x < 0 || head.x >= canvas.width / gridSize || head.y < 0 || head.y >= canvas.height / gridSize) {
-    return endGame();
-  }
+  // Teleport through walls
+  if (pacman.x < 0) pacman.x = cols - 1;
+  if (pacman.x >= cols) pacman.x = 0;
+  if (pacman.y < 0) pacman.y = rows - 1;
+  if (pacman.y >= rows) pacman.y = 0;
 
-  // Colisión con cuerpo
-  if (snake.some((seg, i) => i !== 0 && seg.x === head.x && seg.y === head.y)) {
-    return endGame();
-  }
-
-  snake.unshift(head);
-
-  if (head.x === food.x && head.y === food.y) {
-    score++;
-    spawnFood();
-    updateHighScore();
-  } else {
-    snake.pop();
-  }
-
-  draw();
+  // Eat dots
+  dots = dots.filter(dot => !(dot.x === pacman.x && dot.y === pacman.y));
 }
-
-function spawnFood() {
-  food.x = Math.floor(Math.random() * (canvas.width / gridSize));
-  food.y = Math.floor(Math.random() * (canvas.height / gridSize));
-}
-
-function endGame() {
-  clearInterval(gameInterval);
-  alert(`Juego terminado. Tu puntuación fue ${score}`);
-  saveHighScore();
-}
-
-function updateHighScore() {
-  if (score > highScore) {
-    highScore = score;
-    highScoreElement.textContent = highScore;
-  }
-}
-
-function saveHighScore() {
-  const refHigh = ref(database, 'highScore');
-  set(refHigh, highScore);
-}
-
-function loadHighScore() {
-  const refHigh = ref(database, 'highScore');
-  get(refHigh).then(snapshot => {
-    if (snapshot.exists()) {
-      highScore = snapshot.val();
-      highScoreElement.textContent = highScore;
-    }
-  });
-}
-
-function resetGame() {
-  snake = [{ x: 2, y: 2 }];
-  direction = { x: 1, y: 0 };
-  food = { x: 5, y: 5 };
-  score = 0;
-  scoreElement.textContent = score;
-  clearInterval(gameInterval);
-  gameInterval = setInterval(update, 120);
-}
-
-document.addEventListener('keydown', e => {
-  switch (e.key) {
-    case 'ArrowUp':
-      if (direction.y === 0) direction = { x: 0, y: -1 };
-      break;
-    case 'ArrowDown':
-      if (direction.y === 0) direction = { x: 0, y: 1 };
-      break;
-    case 'ArrowLeft':
-      if (direction.x === 0) direction = { x: -1, y: 0 };
-      break;
-    case 'ArrowRight':
-      if (direction.x === 0) direction = { x: 1, y: 0 };
-      break;
-  }
-});
-
-restartBtn.addEventListener('click', resetGame);
-
-// Iniciar juego
-loadHighScore();
-resetGame();
-
-
-// Variables del juego
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-const scoreElement = document.getElementById('score');
-const highScoreElement = document.getElementById('highScore');
-const restartBtn = document.getElementById('restartBtn');
-
-const gridSize = 20;
-let snake = [{ x: 2, y: 2 }];
-let direction = { x: 1, y: 0 };
-let food = { x: 5, y: 5 };
-let score = 0;
-let highScore = 0;
-let gameInterval;
-
-canvas.width = 400;
-canvas.height = 400;
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = 'lime';
-  snake.forEach(segment => {
-    ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
-  });
-
-  ctx.fillStyle = 'red';
-  ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize, gridSize);
-
-  scoreElement.textContent = score;
-  highScoreElement.textContent = highScore;
+  drawDots();
+  drawPacman();
 }
 
-function update() {
-  const head = { ...snake[0] };
-  head.x += direction.x;
-  head.y += direction.y;
-
-  if (head.x < 0 || head.x >= canvas.width / gridSize || head.y < 0 || head.y >= canvas.height / gridSize) {
-    return endGame();
-  }
-
-  if (snake.some((segment, index) => index !== 0 && segment.x === head.x && segment.y === head.y)) {
-    return endGame();
-  }
-
-  snake.unshift(head);
-
-  if (head.x === food.x && head.y === food.y) {
-    score++;
-    spawnFood();
-    updateHighScore();
-  } else {
-    snake.pop();
-  }
-
+function gameLoop() {
+  update();
   draw();
+  requestAnimationFrame(gameLoop);
 }
 
-function spawnFood() {
-  food.x = Math.floor(Math.random() * (canvas.width / gridSize));
-  food.y = Math.floor(Math.random() * (canvas.height / gridSize));
+function setDirection(dir) {
+  direction = dir;
 }
 
-function endGame() {
-  clearInterval(gameInterval);
-  alert(`Juego terminado. Tu puntuación fue ${score}`);
-  saveHighScore();
-}
-
-function saveHighScore() {
-  const ref = database.ref('highScore');
-  ref.set(highScore);
-}
-
-function loadHighScore() {
-  const ref = database.ref('highScore');
-  ref.once('value').then(snapshot => {
-    if (snapshot.exists()) {
-      highScore = snapshot.val();
-      highScoreElement.textContent = highScore;
-    }
-  });
-}
-
-function updateHighScore() {
-  if (score > highScore) {
-    highScore = score;
-    highScoreElement.textContent = highScore;
-  }
-}
-
-function resetGame() {
-  snake = [{ x: 2, y: 2 }];
-  direction = { x: 1, y: 0 };
-  food = { x: 5, y: 5 };
-  score = 0;
-  scoreElement.textContent = score;
-  clearInterval(gameInterval);
-  gameInterval = setInterval(update, 120);
-}
-
-document.addEventListener('keydown', e => {
-  switch (e.key) {
-    case 'ArrowUp':
-      if (direction.y === 0) direction = { x: 0, y: -1 };
-      break;
-    case 'ArrowDown':
-      if (direction.y === 0) direction = { x: 0, y: 1 };
-      break;
-    case 'ArrowLeft':
-      if (direction.x === 0) direction = { x: -1, y: 0 };
-      break;
-    case 'ArrowRight':
-      if (direction.x === 0) direction = { x: 1, y: 0 };
-      break;
-  }
+// Keyboard controls
+document.addEventListener("keydown", e => {
+  if (e.key === "ArrowUp") setDirection("up");
+  if (e.key === "ArrowDown") setDirection("down");
+  if (e.key === "ArrowLeft") setDirection("left");
+  if (e.key === "ArrowRight") setDirection("right");
 });
 
-let touchStartX = 0;
-let touchStartY = 0;
-
-canvas.addEventListener('touchstart', (e) => {
-  touchStartX = e.touches[0].clientX;
-  touchStartY = e.touches[0].clientY;
-});
-
-canvas.addEventListener('touchmove', (e) => {
-  if (!touchStartX || !touchStartY) return;
-
-  const deltaX = e.touches[0].clientX - touchStartX;
-  const deltaY = e.touches[0].clientY - touchStartY;
-
-  if (Math.abs(deltaX) > Math.abs(deltaY)) {
-    if (deltaX > 0 && direction.x === 0) direction = { x: 1, y: 0 };
-    else if (deltaX < 0 && direction.x === 0) direction = { x: -1, y: 0 };
-  } else {
-    if (deltaY > 0 && direction.y === 0) direction = { x: 0, y: 1 };
-    else if (deltaY < 0 && direction.y === 0) direction = { x: 0, y: -1 };
-  }
-
-  touchStartX = 0;
-  touchStartY = 0;
-});
-
-restartBtn.addEventListener('click', resetGame);
-
-loadHighScore();
-resetGame();
+initDots();
+gameLoop();

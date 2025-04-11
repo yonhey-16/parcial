@@ -1,21 +1,19 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Juego de la Serpiente</title>
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pac-Man Simple</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="game-container">
-    <h1>Juego de la Serpiente</h1>
-    <canvas id="gameCanvas"></canvas>
-    <div class="score-board">
-      <p>Puntuación: <span id="score">0</span></p>
-      <p>Mejor Puntuación: <span id="highScore">0</span></p>
-    </div>
-    <button id="restartBtn">Reiniciar</button>
+  <canvas id="game" width="300" height="300"></canvas>
+  <div class="controls">
+    <button class="btn" onclick="setDirection('up')">⬆️</button>
+    <button class="btn" onclick="setDirection('left')">⬅️</button>
+    <button class="btn" onclick="setDirection('down')">⬇️</button>
+    <button class="btn" onclick="setDirection('right')">➡️</button>
   </div>
-  <script type="module" src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
