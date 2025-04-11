@@ -1,102 +1,162 @@
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
+document.addEventListener("DOMContentLoaded", function () {
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    ctx.imageSmoothingEnabled = false;
 
-const tileSize = 20;
-const rows = canvas.height / tileSize;
-const cols = canvas.width / tileSize;
+    const mainMenu = document.getElementById("mainMenu");
+    const menu = document.getElementById("menu");
+    const controls = document.querySelector(".controls");
+    const playButton = document.getElementById("playButton");
+    const customizeButton = document.getElementById("customizeButton");
+    const startGameButton = document.getElementById("startGameButton");
+    const snakeColorInput = document.getElementById("snakeColor");
+    const bgColorInput = document.getElementById("bgColor");
 
-let snake = [{ x: 5, y: 5 }];
-let food = { x: 10, y: 10 };
-let direction = "right";
-let score = 0;
+    let snakeColor = "#00ff00";
+    let bgColor = "#000000";
+    let gameInterval = null;
 
-function drawSquare(x, y, color) {
-  ctx.fillStyle = color;
-  ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
-}
+    const tileSize = 20;
+    const canvasSize = Math.min(window.innerWidth * 0.9, 400);
+    canvas.width = canvasSize;
+    canvas.height = canvasSize;
 
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+    let snake = [{ x: tileSize * 5, y: tileSize * 5 }];
+    let food = generateFood();
+    let direction = { x: 0, y: 0 };
+    let newDirection = { x: 0, y: 0 };
+    let gameRunning = false;
+    let applesEaten = 0;
+    let record = localStorage.getItem("record") ? parseInt(localStorage.getItem("record")) : 0;
 
-  // Dibujar comida
-  drawSquare(food.x, food.y, "red");
+    // Firebase Config
+    const firebaseConfig = {
+        apiKey: "AIzaSyDuzrvHmIVsoBOda3eVcNWfBbDYYO7pPHY",
+        authDomain: "taller-42947.firebaseapp.com",
+        projectId: "taller-42947",
+        storageBucket: "taller-42947.appspot.com",
+        messagingSenderId: "380282833448",
+        appId: "1:380282833448:web:55db83e13a43d35877031d"
+    };
 
-  // Dibujar snake
-  snake.forEach((segment, index) => {
-    drawSquare(segment.x, segment.y, index === 0 ? "#0f0" : "#3f3");
-  });
-}
+    firebase.initializeApp(firebaseConfig);
 
-function update() {
-  const head = { ...snake[0] };
+    document.addEventListener("keydown", changeDirection);
 
-  if (direction === "up") head.y--;
-  if (direction === "down") head.y++;
-  if (direction === "left") head.x--;
-  if (direction === "right") head.x++;
+    // Controles táctiles
+    document.getElementById("up").addEventListener("click", () => { if (direction.y === 0) newDirection = { x: 0, y: -1 }; });
+    document.getElementById("down").addEventListener("click", () => { if (direction.y === 0) newDirection = { x: 0, y: 1 }; });
+    document.getElementById("left").addEventListener("click", () => { if (direction.x === 0) newDirection = { x: -1, y: 0 }; });
+    document.getElementById("right").addEventListener("click", () => { if (direction.x === 0) newDirection = { x: 1, y: 0 }; });
 
-  // Colisión con paredes
-  if (
-    head.x < 0 || head.x >= cols ||
-    head.y < 0 || head.y >= rows ||
-    snake.some(seg => seg.x === head.x && seg.y === head.y)
-  ) {
-    alert("¡Perdiste! Puntaje: " + score);
-    snake = [{ x: 5, y: 5 }];
-    food = { x: 10, y: 10 };
-    score = 0;
-    updateScore();
-    return;
-  }
+    playButton.addEventListener("click", function () {
+        mainMenu.style.display = "none";
+        startGame();
+    });
 
-  snake.unshift(head);
+    customizeButton.addEventListener("click", function () {
+        mainMenu.style.display = "none";
+        menu.style.display = "block";
+    });
 
-  // Comer comida
-  if (head.x === food.x && head.y === food.y) {
-    score++;
-    updateScore();
-    placeFood();
-  } else {
-    snake.pop();
-  }
-}
+    startGameButton.addEventListener("click", function () {
+        snakeColor = snakeColorInput.value;
+        bgColor = bgColorInput.value;
+        menu.style.display = "none";
+        startGame();
+    });
 
-function updateScore() {
-  document.getElementById("score").textContent = "Puntaje: " + score;
-}
+    function startGame() {
+        canvas.style.display = "block";
+        controls.style.display = "flex";
+        gameRunning = true;
+        snake = [{ x: tileSize * 5, y: tileSize * 5 }];
+        direction = { x: 1, y: 0 };
+        newDirection = direction;
+        applesEaten = 0;
+        food = generateFood();
 
-function placeFood() {
-  food = {
-    x: Math.floor(Math.random() * cols),
-    y: Math.floor(Math.random() * rows)
-  };
-}
+        clearInterval(gameInterval);
 
-function gameLoop() {
-  update();
-  draw();
-  setTimeout(gameLoop, 150); // Velocidad
-}
+        const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+        const speed = isMobile ? 180 : 120;
 
-function setDirection(dir) {
-  const opposites = {
-    up: "down",
-    down: "up",
-    left: "right",
-    right: "left"
-  };
-  if (dir !== opposites[direction]) {
-    direction = dir;
-  }
-}
+        gameInterval = setInterval(updateGame, speed);
+    }
 
-// Controles con teclado
-document.addEventListener("keydown", e => {
-  if (e.key === "ArrowUp") setDirection("up");
-  if (e.key === "ArrowDown") setDirection("down");
-  if (e.key === "ArrowLeft") setDirection("left");
-  if (e.key === "ArrowRight") setDirection("right");
+    function updateGame() {
+        if (!gameRunning) return;
+
+        direction = newDirection;
+        if (direction.x === 0 && direction.y === 0) return;
+
+        let head = {
+            x: snake[0].x + direction.x * tileSize,
+            y: snake[0].y + direction.y * tileSize
+        };
+
+        if (head.x < 0 || head.y < 0 || head.x >= canvas.width || head.y >= canvas.height || snakeCollision(head)) {
+            gameOver();
+            return;
+        }
+
+        if (head.x === food.x && head.y === food.y) {
+            food = generateFood();
+            applesEaten++;
+            if (applesEaten > record) {
+                record = applesEaten;
+                localStorage.setItem("record", record);
+            }
+        } else {
+            snake.pop();
+        }
+
+        snake.unshift(head);
+        drawGame();
+    }
+
+    function drawGame() {
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.beginPath();
+        ctx.fillStyle = "red";
+        ctx.arc(food.x + tileSize / 2, food.y + tileSize / 2, tileSize / 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        snake.forEach((segment, index) => {
+            ctx.fillStyle = index === 0 ? "yellow" : snakeColor;
+            ctx.fillRect(segment.x, segment.y, tileSize, tileSize);
+        });
+
+        ctx.fillStyle = "white";
+        ctx.font = "18px Arial";
+        ctx.fillText(🍏: ${applesEaten}  🎯 Récord: ${record}, 10, 20);
+    }
+
+    function changeDirection(event) {
+        const key = event.key.toLowerCase();
+        if ((key === "arrowup" || key === "w") && direction.y === 0) newDirection = { x: 0, y: -1 };
+        if ((key === "arrowdown" || key === "s") && direction.y === 0) newDirection = { x: 0, y: 1 };
+        if ((key === "arrowleft" || key === "a") && direction.x === 0) newDirection = { x: -1, y: 0 };
+        if ((key === "arrowright" || key === "d") && direction.x === 0) newDirection = { x: 1, y: 0 };
+    }
+
+    function generateFood() {
+        return {
+            x: Math.floor(Math.random() * (canvas.width / tileSize)) * tileSize,
+            y: Math.floor(Math.random() * (canvas.height / tileSize)) * tileSize
+        };
+    }
+
+    function snakeCollision(head) {
+        return snake.some(segment => segment.x === head.x && segment.y === head.y);
+    }
+
+    function gameOver() {
+        gameRunning = false;
+        clearInterval(gameInterval);
+        alert(¡Epaaaaaa! 🍏 Comiste ${applesEaten} manzanas. 🎯 Récord: ${record});
+        location.reload();
+    }
 });
-
-gameLoop();
-
