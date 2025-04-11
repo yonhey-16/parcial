@@ -1,17 +1,22 @@
 // Configuración de Firebase
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyAzn1VrP1bY6h-kDbPD_6hbR1SmjNUWzKA",
-    authDomain: "taller1-e4a59.firebaseapp.com",
-    databaseURL: "https://taller1-e4a59-default-rtdb.firebaseio.com",
-    projectId: "taller1-e4a59",
-    storageBucket: "taller1-e4a59.appspot.com",
-    messagingSenderId: "989644443398",
-    appId: "1:989644443398:web:d91e2e513a481533cb1887"
+  apiKey: "AIzaSyBN07ubU0AijfsVG2aJP38rzlRnSMJQNjU",
+  authDomain: "parcial-e02ad.firebaseapp.com",
+  projectId: "parcial-e02ad",
+  storageBucket: "parcial-e02ad.firebasestorage.app",
+  messagingSenderId: "612576348278",
+  appId: "1:612576348278:web:3b620d1800de1ad2fef757"
 };
 
-// Inicializar Firebase
-firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+
 
 // Variables del juego
 const canvas = document.getElementById('gameCanvas');
