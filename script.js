@@ -1,86 +1,96 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
+
 const tileSize = 20;
 const rows = canvas.height / tileSize;
 const cols = canvas.width / tileSize;
 
-let pacman = { x: 5, y: 5 };
+let snake = [{ x: 5, y: 5 }];
+let food = { x: 10, y: 10 };
 let direction = "right";
-let dots = [];
+let score = 0;
 
-function initDots() {
-  dots = [];
-  for (let i = 0; i < cols; i++) {
-    for (let j = 0; j < rows; j++) {
-      if (!(i === pacman.x && j === pacman.y)) {
-        dots.push({ x: i, y: j });
-      }
-    }
-  }
-}
-
-function drawPacman() {
-  ctx.beginPath();
-  ctx.fillStyle = "yellow";
-  ctx.arc(
-    pacman.x * tileSize + tileSize / 2,
-    pacman.y * tileSize + tileSize / 2,
-    tileSize / 2,
-    0.2 * Math.PI,
-    1.8 * Math.PI
-  );
-  ctx.lineTo(pacman.x * tileSize + tileSize / 2, pacman.y * tileSize + tileSize / 2);
-  ctx.fill();
-}
-
-function drawDots() {
-  ctx.fillStyle = "white";
-  dots.forEach(dot => {
-    ctx.beginPath();
-    ctx.arc(
-      dot.x * tileSize + tileSize / 2,
-      dot.y * tileSize + tileSize / 2,
-      3,
-      0,
-      2 * Math.PI
-    );
-    ctx.fill();
-  });
-}
-
-function update() {
-  if (direction === "up") pacman.y--;
-  if (direction === "down") pacman.y++;
-  if (direction === "left") pacman.x--;
-  if (direction === "right") pacman.x++;
-
-  // Teleport through walls
-  if (pacman.x < 0) pacman.x = cols - 1;
-  if (pacman.x >= cols) pacman.x = 0;
-  if (pacman.y < 0) pacman.y = rows - 1;
-  if (pacman.y >= rows) pacman.y = 0;
-
-  // Eat dots
-  dots = dots.filter(dot => !(dot.x === pacman.x && dot.y === pacman.y));
+function drawSquare(x, y, color) {
+  ctx.fillStyle = color;
+  ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
 }
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  drawDots();
-  drawPacman();
+
+  // Dibujar comida
+  drawSquare(food.x, food.y, "red");
+
+  // Dibujar snake
+  snake.forEach((segment, index) => {
+    drawSquare(segment.x, segment.y, index === 0 ? "#0f0" : "#3f3");
+  });
+}
+
+function update() {
+  const head = { ...snake[0] };
+
+  if (direction === "up") head.y--;
+  if (direction === "down") head.y++;
+  if (direction === "left") head.x--;
+  if (direction === "right") head.x++;
+
+  // Colisión con paredes
+  if (
+    head.x < 0 || head.x >= cols ||
+    head.y < 0 || head.y >= rows ||
+    snake.some(seg => seg.x === head.x && seg.y === head.y)
+  ) {
+    alert("¡Perdiste! Puntaje: " + score);
+    snake = [{ x: 5, y: 5 }];
+    food = { x: 10, y: 10 };
+    score = 0;
+    updateScore();
+    return;
+  }
+
+  snake.unshift(head);
+
+  // Comer comida
+  if (head.x === food.x && head.y === food.y) {
+    score++;
+    updateScore();
+    placeFood();
+  } else {
+    snake.pop();
+  }
+}
+
+function updateScore() {
+  document.getElementById("score").textContent = "Puntaje: " + score;
+}
+
+function placeFood() {
+  food = {
+    x: Math.floor(Math.random() * cols),
+    y: Math.floor(Math.random() * rows)
+  };
 }
 
 function gameLoop() {
   update();
   draw();
-  requestAnimationFrame(gameLoop);
+  setTimeout(gameLoop, 150); // Velocidad
 }
 
 function setDirection(dir) {
-  direction = dir;
+  const opposites = {
+    up: "down",
+    down: "up",
+    left: "right",
+    right: "left"
+  };
+  if (dir !== opposites[direction]) {
+    direction = dir;
+  }
 }
 
-// Keyboard controls
+// Controles con teclado
 document.addEventListener("keydown", e => {
   if (e.key === "ArrowUp") setDirection("up");
   if (e.key === "ArrowDown") setDirection("down");
@@ -88,5 +98,4 @@ document.addEventListener("keydown", e => {
   if (e.key === "ArrowRight") setDirection("right");
 });
 
-initDots();
 gameLoop();
