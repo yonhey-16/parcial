@@ -1,10 +1,7 @@
-// Configuración de Firebase
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
-// Your web app's Firebase configuration
+// Configuración de Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyBN07ubU0AijfsVG2aJP38rzlRnSMJQNjU",
   authDomain: "parcial-e02ad.firebaseapp.com",
@@ -14,8 +11,138 @@ const firebaseConfig = {
   appId: "1:612576348278:web:3b620d1800de1ad2fef757"
 };
 
-// Initialize Firebase
+// Inicializar Firebase
 const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
+
+// Variables del juego
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const scoreElement = document.getElementById('score');
+const highScoreElement = document.getElementById('highScore');
+const restartBtn = document.getElementById('restartBtn');
+
+const gridSize = 20;
+let snake = [{ x: 2, y: 2 }];
+let direction = { x: 1, y: 0 };
+let food = { x: 5, y: 5 };
+let score = 0;
+let highScore = 0;
+let gameInterval;
+
+canvas.width = 400;
+canvas.height = 400;
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Dibujar serpiente
+  ctx.fillStyle = 'lime';
+  snake.forEach(segment => {
+    ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
+  });
+
+  // Dibujar comida
+  ctx.fillStyle = 'red';
+  ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize, gridSize);
+
+  scoreElement.textContent = score;
+  highScoreElement.textContent = highScore;
+}
+
+function update() {
+  const head = { ...snake[0] };
+  head.x += direction.x;
+  head.y += direction.y;
+
+  // Colisión con bordes
+  if (head.x < 0 || head.x >= canvas.width / gridSize || head.y < 0 || head.y >= canvas.height / gridSize) {
+    return endGame();
+  }
+
+  // Colisión con cuerpo
+  if (snake.some((seg, i) => i !== 0 && seg.x === head.x && seg.y === head.y)) {
+    return endGame();
+  }
+
+  snake.unshift(head);
+
+  if (head.x === food.x && head.y === food.y) {
+    score++;
+    spawnFood();
+    updateHighScore();
+  } else {
+    snake.pop();
+  }
+
+  draw();
+}
+
+function spawnFood() {
+  food.x = Math.floor(Math.random() * (canvas.width / gridSize));
+  food.y = Math.floor(Math.random() * (canvas.height / gridSize));
+}
+
+function endGame() {
+  clearInterval(gameInterval);
+  alert(`Juego terminado. Tu puntuación fue ${score}`);
+  saveHighScore();
+}
+
+function updateHighScore() {
+  if (score > highScore) {
+    highScore = score;
+    highScoreElement.textContent = highScore;
+  }
+}
+
+function saveHighScore() {
+  const refHigh = ref(database, 'highScore');
+  set(refHigh, highScore);
+}
+
+function loadHighScore() {
+  const refHigh = ref(database, 'highScore');
+  get(refHigh).then(snapshot => {
+    if (snapshot.exists()) {
+      highScore = snapshot.val();
+      highScoreElement.textContent = highScore;
+    }
+  });
+}
+
+function resetGame() {
+  snake = [{ x: 2, y: 2 }];
+  direction = { x: 1, y: 0 };
+  food = { x: 5, y: 5 };
+  score = 0;
+  scoreElement.textContent = score;
+  clearInterval(gameInterval);
+  gameInterval = setInterval(update, 120);
+}
+
+document.addEventListener('keydown', e => {
+  switch (e.key) {
+    case 'ArrowUp':
+      if (direction.y === 0) direction = { x: 0, y: -1 };
+      break;
+    case 'ArrowDown':
+      if (direction.y === 0) direction = { x: 0, y: 1 };
+      break;
+    case 'ArrowLeft':
+      if (direction.x === 0) direction = { x: -1, y: 0 };
+      break;
+    case 'ArrowRight':
+      if (direction.x === 0) direction = { x: 1, y: 0 };
+      break;
+  }
+});
+
+restartBtn.addEventListener('click', resetGame);
+
+// Iniciar juego
+loadHighScore();
+resetGame();
 
 
 // Variables del juego
