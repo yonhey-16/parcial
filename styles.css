@@ -1,128 +1,75 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 body {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    text-align: center;
-    background-color: black;
-    color: white;
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f0f0f0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
 }
 
-/* Menús centrados */
-#mainMenu, #menu {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 90%;
-    max-width: 400px;
-    background: rgba(0, 0, 0, 0.9);
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0px 5px 15px rgba(255, 255, 255, 0.3);
+#app {
+  text-align: center;
+  width: 80%;
+  max-width: 1200px;
 }
 
-/* Botones dentro del menú */
-#mainMenu button, #menu button {
-    width: 100%;
-    padding: 10px;
-    font-size: 18px;
-    margin-top: 10px;
-    background-color: #ff5722;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
+h1 {
+  font-size: 2rem;
+  color: #333;
+  margin-bottom: 20px;
 }
 
-#mainMenu button:hover, #menu button:hover {
-    background-color: #e64a19;
+.series-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
 }
 
-/* Centrar el canvas del juego */
-canvas {
-    display: block;
-    margin: auto;
-    border: 2px solid white;
+.series-card {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
 }
 
-/* Centrar controles en móviles */
-.controls {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
+.series-card:hover {
+  transform: scale(1.05);
 }
 
-.control-row {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-bottom: 5px;
+.series-card img {
+  width: 100%;
+  height: 400px;
+  object-fit: cover;
+  border-radius: 10px;
 }
 
-.control-btn {
-    width: 60px;
-    height: 60px;
-    font-size: 30px;
-    font-weight: bold;
-    color: white;
-    background: #ff5722; /* Naranja arcade */
-    border: 3px solid #ffcc00; /* Amarillo neón */
-    border-radius: 8px;
-    box-shadow: 0px 4px 8px rgba(255, 204, 0, 0.7);
-    cursor: pointer;
-    transition: all 0.2s ease;
+.series-card h3 {
+  font-size: 1.2rem;
+  color: #333;
+  margin-top: 10px;
 }
 
-.control-btn:active {
-    transform: scale(0.9);
-    background: #e64a19; /* Naranja más oscuro al presionar */
+.series-card p {
+  color: #555;
+  font-size: 0.9rem;
+  margin-top: 10px;
 }
 
-.menu {
-    background: rgba(0, 0, 0, 0.9);
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0px 5px 15px rgba(255, 255, 255, 0.3);
-    width: 300px;
-    text-align: center;
+.series-card a {
+  color: #007BFF;
+  text-decoration: none;
+  margin-top: 10px;
+  display: inline-block;
 }
 
-h2 {
-    margin-bottom: 15px;
-    font-size: 20px;
-    color: white;
-}
-
-.opciones {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin: 10px 0;
-}
-
-.opciones label {
-    font-size: 16px;
-    font-weight: bold;
-    color: white;
-}
-
-input[type="color"] {
-    border: none;
-    width: 40px;
-    height: 40px;
-    cursor: pointer;
+.series-card a:hover {
+  text-decoration: underline;
 }
