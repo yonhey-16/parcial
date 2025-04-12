@@ -1,77 +1,75 @@
-const shows = [
-  {
-    "score": 0.9081671,
-    "show": {
-      "id": 139,
-      "url": "https://www.tvmaze.com/shows/139/girls",
-      "name": "Girls",
-      "type": "Scripted",
-      "language": "English",
-      "genres": ["Drama", "Romance"],
-      "status": "Ended",
-      "premiered": "2012-04-15",
-      "ended": "2017-04-16",
-      "image": {
-        "medium": "https://static.tvmaze.com/uploads/images/medium_portrait/31/78286.jpg"
-      },
-      "summary": "This Emmy winning series is a comic look at the assorted humiliations and rare triumphs of a group of girls in their 20s."
-    }
-  },
-  {
-    "score": 0.89102745,
-    "show": {
-      "id": 41734,
-      "url": "https://www.tvmaze.com/shows/41734/girls",
-      "name": "GIRLS",
-      "type": "Scripted",
-      "language": "Mongolian",
-      "genres": ["Comedy"],
-      "status": "Ended",
-      "premiered": "2018-06-15",
-      "ended": "2019-10-14",
-      "image": {
-        "medium": "https://static.tvmaze.com/uploads/images/medium_portrait/191/478539.jpg"
-      },
-      "summary": "A Mongolian comedy series."
-    }
-  },
-  {
-    "score": 0.7008197,
-    "show": {
-      "id": 67594,
-      "url": "https://www.tvmaze.com/shows/67594/dope-girls",
-      "name": "Dope Girls",
-      "type": "Scripted",
-      "language": "English",
-      "genres": ["Drama", "Crime", "History"],
-      "status": "To Be Determined",
-      "premiered": "2025-02-22",
-      "image": {
-        "medium": "https://static.tvmaze.com/uploads/images/medium_portrait/556/1390988.jpg"
-      },
-      "summary": "A story about a housewife who sets up a nightclub during WWI."
-    }
-  }
-  // Agregar más series según lo que necesitas
+const showsData = [
+    {
+        "score": 0.9081671,
+        "show": {
+            "id": 139,
+            "url": "https://www.tvmaze.com/shows/139/girls",
+            "name": "Girls",
+            "image": {
+                "medium": "https://static.tvmaze.com/uploads/images/medium_portrait/31/78286.jpg"
+            },
+            "summary": "This Emmy winning series is a comic look at the assorted humiliations and rare triumphs of a group of girls in their 20s.",
+            "rating": {
+                "average": 6.4
+            }
+        }
+    },
+    {
+        "score": 0.89102745,
+        "show": {
+            "id": 41734,
+            "url": "https://www.tvmaze.com/shows/41734/girls",
+            "name": "GIRLS",
+            "image": {
+                "medium": "https://static.tvmaze.com/uploads/images/medium_portrait/191/478539.jpg"
+            },
+            "summary": "A Mongolian comedy series about the adventures of girls.",
+            "rating": {
+                "average": null
+            }
+        }
+    },
+    {
+        "score": 0.7008197,
+        "show": {
+            "id": 67594,
+            "url": "https://www.tvmaze.com/shows/67594/dope-girls",
+            "name": "Dope Girls",
+            "image": {
+                "medium": "https://static.tvmaze.com/uploads/images/medium_portrait/556/1390988.jpg"
+            },
+            "summary": "As WWI ends, housewife Kate Galloway sets up a nightclub in Soho to support her daughters.",
+            "rating": {
+                "average": 5.2
+            }
+        }
+    },
+    // Add more shows here...
 ];
 
-const seriesContainer = document.getElementById("series-container");
+function displayShows(shows) {
+    const showsList = document.getElementById("shows-list");
+    showsList.innerHTML = ''; // Clear the list before rendering
 
-function displayShows() {
-  shows.forEach(show => {
-    const showCard = document.createElement("div");
-    showCard.classList.add("series-card");
+    shows.forEach(showItem => {
+        const show = showItem.show;
+        const showCard = document.createElement("div");
+        showCard.classList.add("show-card");
 
-    showCard.innerHTML = `
-      <img src="${show.show.image.medium}" alt="${show.show.name}">
-      <h3><a href="${show.show.url}" target="_blank">${show.show.name}</a></h3>
-      <p><strong>Genres:</strong> ${show.show.genres.join(', ')}</p>
-      <p><strong>Status:</strong> ${show.show.status}</p>
-      <p>${show.show.summary}</p>
-    `;
+        showCard.innerHTML = `
+            <img src="${show.image.medium}" alt="${show.name}">
+            <div class="content">
+                <div class="title"><a href="${show.url}" target="_blank">${show.name}</a></div>
+                <div class="summary">${show.summary}</div>
+                <div class="rating">Rating: ${show.rating.average ? show.rating.average : 'N/A'}</div>
+            </div>
+        `;
 
-    seriesContainer.appendChild(showCard);
-  });
+        showsList.appendChild(showCard);
+    });
 }
 
-displayShows();
+// Display the shows on page load
+window.onload = () => {
+    displayShows(showsData);
+};
